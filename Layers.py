@@ -19,29 +19,53 @@ class DoubleConv(nn.Module):
             nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_channels),
             nn.LeakyReLU(inplace=True),
-            nn.Dropout(p=0.5, inplace=True)
+            nn.Dropout(p=0.2, inplace=True)
         )
 
     def forward(self, x):
         return self.double_conv(x)
 
-class ScoreModule(nn.Module):
+
+class ScoreHead(nn.Module):
 
     def __init__(self, in_channels, out_channels):
-        super(ScoreModule, self).__init__()
+        super(ScoreHead, self).__init__()
         self.score = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_channels),
-            nn.Dropout(p=0.5, inplace=True),
-            nn.Conv2d(out_channels, 1),
+            nn.Dropout(p=0.2, inplace=True),
+            nn.Conv2d(out_channels, 1, kernel_size=3, padding=1),
             nn.Sigmoid()
         )
 
     def forward(self, x):
         return self.score(x)
 
-class DescriptorModule(nn.Module):
-    pass
 
-class LocationModule(nn.Module):
-    pass
+class DescriptorHead(nn.Module):
+
+    def __init__(self, in_channels, out_channels, mid_channels):
+        super(DescriptorHead, self).__init__()
+        self.descriptor = nn.Sequential(
+            nn.Conv2d(in_channels, mid_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(mid_channels),
+            nn.Dropout(p=0.2, inplace=True),
+            nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1),
+            nn.PixelShuffle(2)
+        )
+
+
+class LocationHead(nn.Module):
+
+    def __init__(self, in_channels, out_channels):
+        super(LocationHead, self).__init__()
+        self.location = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.Dropout(p=0.2, inplace=True),
+            nn.Conv2d(out_channels, 2, kernel_size=3, padding=1),
+            nn.Tanh()
+        )
+
+    def forward(self, x):
+        return self.location(x)
