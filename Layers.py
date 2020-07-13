@@ -24,3 +24,12 @@ class DoubleConv(nn.Module):
 
     def forward(self, x):
         return self.double_conv(x)
+
+class ScoreModule(nn.Module):
+    pass
+
+class DescriptorModule(nn.Module):
+    pass
+
+class LocationModule(nn.Module):
+    pass
