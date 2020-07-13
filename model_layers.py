@@ -42,19 +42,6 @@ class ScoreHead(nn.Module):
         return self.score(x)
 
 
-class DescriptorHead(nn.Module):
-
-    def __init__(self, in_channels, out_channels, mid_channels):
-        super(DescriptorHead, self).__init__()
-        self.descriptor = nn.Sequential(
-            nn.Conv2d(in_channels, mid_channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(mid_channels),
-            nn.Dropout(p=0.2, inplace=True),
-            nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1),
-            nn.PixelShuffle(2)
-        )
-
-
 class LocationHead(nn.Module):
 
     def __init__(self, in_channels, out_channels):
@@ -69,3 +56,33 @@ class LocationHead(nn.Module):
 
     def forward(self, x):
         return self.location(x)
+
+
+class DescriptorHeadA(nn.Module):
+
+    def __init__(self, in_channels, out_channels, mid_channels):
+        super(DescriptorHeadA, self).__init__()
+        self.descriptor = nn.Sequential(
+            nn.Conv2d(in_channels, mid_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(mid_channels),
+            nn.Dropout(p=0.2, inplace=True),
+            nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1),
+            nn.PixelShuffle(2)
+        )
+
+    def forward(self, x):
+        return self.descriptor(x)
+
+
+class DescriptorHeadB(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(DescriptorHeadB, self).__init__()
+        self.descriptor = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1)
+        )
+
+    def forward(self, x1, x2):
+        x = torch.cat([x2, x1], dim=1)
+        return self.descriptor(x)
