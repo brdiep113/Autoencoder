@@ -9,11 +9,11 @@ class PointDetectorNet(nn.Module):
 
         # Encoder Backbone
         self.vgg1 = DoubleConv(3, 32)
-        self.pool1 = nn.MaxPool2D(2)
+        self.pool1 = nn.MaxPool2d(2)
         self.vgg2 = DoubleConv(32, 64)
-        self.pool2 = nn.MaxPool2D(2)
+        self.pool2 = nn.MaxPool2d(2)
         self.vgg3 = DoubleConv(64, 128)
-        self.pool3 = nn.MaxPool2D(2)
+        self.pool3 = nn.MaxPool2d(2)
         self.vgg4 = DoubleConv(128, 256)
 
         # Score Module
@@ -24,7 +24,7 @@ class PointDetectorNet(nn.Module):
 
         # Descriptor Module
         self.descriptor1 = DescriptorHeadA(256, 512, 256)
-        self.descriptor2 = DescriptorHeadB(128, 256)
+        self.descriptor2 = DescriptorHeadB(256, 256)
 
     def forward(self, x):
         x = self.vgg1(x)

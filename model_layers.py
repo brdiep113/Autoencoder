@@ -84,5 +84,5 @@ class DescriptorHeadB(nn.Module):
         )
 
     def forward(self, x1, x2):
-        x = torch.cat([x2, x1], dim=1)
+        x = torch.cat([x1, x2], dim=1)
         return self.descriptor(x)
