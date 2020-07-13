@@ -1,32 +1,29 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from Layers import *
 
 class PointDetectorNet(nn.Module):
     def __init__(self):
         super(PointDetectorNet, self).__init__()
 
         #Encoder Backbone
-        self.conv1a = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1)
-        self.conv1b = nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1)
+        self.vgg1 = DoubleConv(3, 32)
         self.pool1 = nn.MaxPool2D(2)
-        self.conv2a = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
-        self.conv2b = nn.Conv2d(128, 128, kernel_size=3, stride=1, padding=1)
+        self.vgg2 = DoubleConv(32, 64)
         self.pool2 = nn.MaxPool2D(2)
-        self.conv3a = nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1)
-        self.conv3b = nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1)
+        self.vgg3 = DoubleConv(64, 128)
         self.pool3 = nn.MaxPool2D(2)
-        self.conv4a = nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1)
-        self.conv4b = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1)
-        self.pool4 = nn.MaxPool2D(2)
+        self.vgg4 = DoubleConv(128, 256)
 
         #Score Module
-        self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
-        self
+        self.score = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
 
         #Location Module
+        self.location = 1
 
         #Descriptor Module
+        self.descriptor = 1
 
     def forward(self, x):
         x = F.relu(self.conv1a(x))

@@ -9,7 +9,7 @@ class DoubleConv(nn.Module):
     """
 
     def __init__(self, in_channels, out_channels, mid_channels=None):
-        super().__init__()
+        super(DoubleConv, self).__init__()
         if not mid_channels:
             mid_channels = out_channels
         self.double_conv = nn.Sequential(
@@ -26,7 +26,19 @@ class DoubleConv(nn.Module):
         return self.double_conv(x)
 
 class ScoreModule(nn.Module):
-    pass
+
+    def __init__(self, in_channels, out_channels):
+        super(ScoreModule, self).__init__()
+        self.score = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels),
+            nn.BatchNorm2d(out_channels),
+            nn.Dropout(p=0.5, inplace=True),
+            nn.Conv2d(out_channels, 1),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        return self.score(x)
 
 class DescriptorModule(nn.Module):
     pass
