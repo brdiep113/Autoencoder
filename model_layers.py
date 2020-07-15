@@ -26,6 +26,25 @@ class DoubleConv(nn.Module):
         return self.double_conv(x)
 
 
+class TripleConv(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(TripleConv, self).__init__()
+        self.triple_conv = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.LeakyReLU(inplace=True),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.LeakyReLU(inplace=True),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.LeakyReLU(inplace=True)
+        )
+
+    def forward(self, x):
+        return self.triple_conv(x)
+
+
 class ScoreHead(nn.Module):
 
     def __init__(self, in_channels, out_channels):
