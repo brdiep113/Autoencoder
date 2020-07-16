@@ -11,7 +11,7 @@ dir_img = 'data/imgs/'
 dir_mask = 'data/masks/'
 dir_checkpoint = 'checkpoints/'
 
-def train_net(net, epochs=5, img_scale, val_percent, batch_size):
+def train_net(net, img_scale, val_percent, batch_size, lr, epochs=5):
     dataset = BasicDataset(dir_img, dir_mask, img_scale)
     n_val = int(len(dataset) * val_percent)
     n_train = len(dataset) - n_val

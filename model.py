@@ -56,10 +56,30 @@ class SegmentationModel(nn.Module):
         self.predict2 = nn.Conv2d(128, 2, kernel_size=3, padding=1)
         self.vgg3 = TripleConv(128, 256)
         self.pool3 = nn.MaxPool2d(2)
-        self.predict3 = nn.Conv2d(128, 2, kernel_size=3, padding=1)
+        self.predict3 = nn.Conv2d(256, 2, kernel_size=3, padding=1)
         self.vgg4 = TripleConv(256, 512)
 
-        #
+        # Decoder
+        self.up1 = Up(512, 256)
+        self.up2 = Up(256, 128)
+        self.up3 = Up(128, 64)
+        self.up4 = Up(64, 32)
+        self.out = nn.Conv2d(32, 2, kernel_size=1)
+
 
     def forward(self, x):
-        return x
+        x1 = self.vgg1(x)
+        x2 = self.pool1(x1)
+        p1 = self.predict1(x2)
+        x3 = self.vgg2(x2)
+        x4 = self.pool2(x3)
+        p2 = self.predict2(x4)
+        x5 = self.vgg3(x4)
+        x6 = self.pool3(x5)
+        p3 = self.predict3(x6)
+        x7 = self.vgg4(x6)
+        x = self.up1(x7, p3)
+        x = self.up2(x, p2)
+        x = self.up3(x, p1)
+        logits = self.outc(x)
+        return logits
