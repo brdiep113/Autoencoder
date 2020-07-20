@@ -5,7 +5,7 @@ import torch.nn as nn
 from tqdm import tqdm
 from utils.dataset import BasicDataset
 from torch.utils.data import DataLoader, random_split
-from utils.loss import ocdnet_loss
+from utils.loss import ocdnet_loss, descriptor_loss
 
 dir_img = 'data/imgs/'
 dir_mask = 'data/masks/'
@@ -22,16 +22,30 @@ def train_net(net, img_scale, val_percent, batch_size, lr, epochs=5):
     optimizer = optim.RMSprop(net.parameters(), lr=lr, weight_decay=1e-8, momentum=0.9)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min' if net.n_classes > 1 else 'max', patience=2)
     criterion = ocdnet_loss()
-    loss_position = nn.BCELoss()
-    loss_p = None
 
     for epoch in range(epochs):
         net.train()
-        loss = criterion()
-        optimizer.zero_grad()
-        loss.backward()
-        nn.utils.clip_grad_value_(net.parameters(), 0.1)
-        optimizer.step()
+
+        for _, data in enumerate(train_loader):
+            img = data['image']
+            score_target = data['score']
+            location_target = data['location']
+            descriptor_target = data['descriptor']
+
+            img = img.to(device=device, dtype=torch.float32)
+            score_target = score_target.to(device=device)
+            location_target = location_target.to(device=device)
+            descriptor_target = descriptor_target.to(device=device)
+
+            score_pred, location_pred, descriptor_pred = net(img)
+
+            loss = criterion(score_pred, score_target, location_pred, location_target,
+                             descriptor_pred, descriptor_target)
+
+            optimizer.zero_grad()
+            loss.backward()
+            nn.utils.clip_grad_value_(net.parameters(), 0.1)
+            optimizer.step()
 
 if __name__ == "__main__":
 
