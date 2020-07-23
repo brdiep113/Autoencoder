@@ -1,65 +1,87 @@
-from os.path import splitext
-from os import listdir
-import numpy as np
-from glob import glob
+import glob
+import json
 import torch
-from torch.utils.data import Dataset
-import logging
+import numpy as np
 from PIL import Image
+from torch.utils.data.dataset import Dataset
 
 
-class BasicDataset(Dataset):
-    def __init__(self, imgs_dir, masks_dir, scale=1):
-        self.imgs_dir = imgs_dir
-        self.masks_dir = masks_dir
-        self.scale = scale
-        assert 0 < scale <= 1, 'Scale must be between 0 and 1'
+def generate_heatmap(point_list):
+    heatmap = np.zeros((1, 128, 128))
+    for point in point_list:
+        # our origin in point coords is in bottom left (0,0) & it's cols are XY
+        # XY (point[0]&point[1]) are also float and need rounding
+        r = 128 - np.round(point[1])
+        r = r.astype(int)
+        c = np.round(point[0])
+        c = c.astype(int)
+        heatmap[:, r, c] = 1
 
-        self.ids = [splitext(file)[0] for file in listdir(imgs_dir)
-                    if not file.startswith('.')]
-        logging.info(f'Creating dataset with {len(self.ids)} examples')
+    return heatmap
+
+
+class MyDataset(Dataset):
+    def __init__(self, root_path, transforms=None):
+        '''
+        Args:
+            root_path (string): path to the root folder containing all folders
+            transform: pytorch transforms for transforms and tensor conversion
+        '''
+        self.transforms = transforms
+        # get the images list
+        self.image_list = glob.glob(root_path + '/Image/' + '*')
+        # get the points list
+        self.point_list = glob.glob(root_path + '/Point_Location/' + '*')
+        # get the features list
+        self.feature_list = glob.glob(root_path + '/Coarse_Label/' + '*')
+
+        # calculate length
+        self.dataset_length = len(self.image_list)
+
+    def __getitem__(self, index):
+        # get image name from the image list
+        single_image_path = self.image_list[index]
+        # Open image (as a PIL.Image object) & must be converted to tensor
+        # TODO: replace Image with skimage
+        with Image.open(single_image_path).convert('RGB') as img:
+            # convert to numpy, dim = 128x128
+            img_as_np = np.array(img) / 255
+            # Transform image to tensor, change data type
+            img_tensor = torch.from_numpy(img_as_np).float()
+            img_tensor = img_tensor.permute(2, 0, 1)
+        img.close()
+
+        # get point path from the point list
+        single_point_path = self.point_list[index]
+        # open the file containing point locations
+        with open(single_point_path) as json_file:
+            data = json.load(json_file)
+            x_pts = np.array((data["X"]))
+            y_pts = np.array((data["Y"]))
+            points = np.vstack((x_pts, y_pts)).T
+            # generate point heatmap from point locations
+            point_map = generate_heatmap(points)
+            # convert to tensor, change data type
+            point_map_tensor = torch.from_numpy(point_map).float()
+        json_file.close()
+
+        # feature path
+        #single_feature_path = self.feature_list[index]
+
+        # open the file containing point features
+        #with open(single_feature_path) as feature_json:
+        #    data_f = json.load(feature_json)
+
+            #
+        feature_tensor = None
+
+        # Transform image to tensor
+        if self.transforms:
+            img_tensor = self.transforms(img_tensor)
+            point_map_tensor = self.transforms(point_map_tensor)
+
+        # Return image and the label
+        return {'image': img_tensor, 'location': point_map_tensor, 'descriptor': feature_tensor}
 
     def __len__(self):
-        return len(self.ids)
-
-    @classmethod
-    def preprocess(cls, pil_img, scale):
-        w, h = pil_img.size
-        newW, newH = int(scale * w), int(scale * h)
-        assert newW > 0 and newH > 0, 'Scale is too small'
-        pil_img = pil_img.resize((newW, newH))
-
-        img_nd = np.array(pil_img)
-
-        if len(img_nd.shape) == 2:
-            img_nd = np.expand_dims(img_nd, axis=2)
-
-        # HWC to CHW
-        img_trans = img_nd.transpose((2, 0, 1))
-        if img_trans.max() > 1:
-            img_trans = img_trans / 255
-
-        return img_trans
-
-    def __getitem__(self, i):
-        idx = self.ids[i]
-        mask_file = glob(self.masks_dir + idx + '.*')
-        img_file = glob(self.imgs_dir + idx + '.*')
-
-        assert len(mask_file) == 1, \
-            f'Either no mask or multiple masks found for the ID {idx}: {mask_file}'
-        assert len(img_file) == 1, \
-            f'Either no image or multiple images found for the ID {idx}: {img_file}'
-        mask = Image.open(mask_file[0])
-        img = Image.open(img_file[0])
-
-        assert img.size == mask.size, \
-            f'Image and mask {idx} should be the same size, but are {img.size} and {mask.size}'
-
-        img = self.preprocess(img, self.scale)
-        mask = self.preprocess(mask, self.scale)
-
-        return {
-            'image': torch.from_numpy(img).type(torch.FloatTensor),
-            'mask': torch.from_numpy(mask).type(torch.FloatTensor)
-        }
+        return self.dataset_length
