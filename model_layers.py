@@ -69,7 +69,7 @@ class LocationHead(nn.Module):
             nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_channels),
             nn.Dropout(p=0.2, inplace=True),
-            nn.Conv2d(out_channels, 2, kernel_size=3, padding=1),
+            nn.Conv2d(out_channels, 65, kernel_size=3, padding=1),
             nn.Tanh()
         )
 
