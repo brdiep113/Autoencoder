@@ -20,6 +20,18 @@ def generate_heatmap(point_list):
     return heatmap
 
 
+def generate_feature_cube(point_list, feature_list):
+    feature_cube = np.zeroes((16, 128, 128))
+    for i in range(len(point_list)):
+        point = point_list[i]
+        r, c = 128 - np.round(point[1]), np.round(point[0])
+        r = r.astype(int)
+        c = c.astype(int)
+        feature_cube[:, r, c] = feature_list[i]
+
+    return feature_cube
+
+
 class MyDataset(Dataset):
     def __init__(self, root_path, transforms=None):
         '''
@@ -82,6 +94,7 @@ class MyDataset(Dataset):
 
         # Return image and the label
         return {'image': img_tensor, 'location': point_map_tensor, 'descriptor': feature_tensor}
+
 
     def __len__(self):
         return self.dataset_length

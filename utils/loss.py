@@ -17,11 +17,13 @@ def ocdnet_loss(score_pred, score_target, location_pred, location_target, descri
 def score_loss(score_pred, score_target):
     return 0
 
+
 def descriptor_loss(descriptor_pred, descriptor_target):
     zeros = torch.zeros_like(descriptor_pred)
     error = torch.max(descriptor_target - descriptor_pred, zeros)
     loss_val = torch.mean(torch.pow(error, 2))
     return loss_val
+
 
 def location_loss(location_pred, location_target):
     return nn.BCEWithLogitsLoss(location_pred, location_target)

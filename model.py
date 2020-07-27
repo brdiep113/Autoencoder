@@ -22,6 +22,7 @@ class PointDetectorNet(nn.Module):
 
         # Location Module
         self.location = LocationHead(256, 256)
+        self.pixel_shuffle = nn.PixelShuffle(8)
 
         # Descriptor Module
         self.descriptor1 = DescriptorHeadA(256, 512, 256)
