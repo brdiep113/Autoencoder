@@ -78,14 +78,16 @@ class MyDataset(Dataset):
         json_file.close()
 
         # feature path
-        #single_feature_path = self.feature_list[index]
+        single_feature_path = self.feature_list[index]
 
         # open the file containing point features
-        #with open(single_feature_path) as feature_json:
-        #    data_f = json.load(feature_json)
+        with open(single_feature_path) as feature_json:
+            data_f = json.load(feature_json)
 
-            #
-        feature_tensor = None
+            # generate feature data cube from ground truths
+            feature_map = generate_feature_cube(points, data_f)
+            # convert to tensor, change data type
+            feature_map_tensor = torch.from_numpy(feature_map).float()
 
         # Transform image to tensor
         if self.transforms:
@@ -93,7 +95,7 @@ class MyDataset(Dataset):
             point_map_tensor = self.transforms(point_map_tensor)
 
         # Return image and the label
-        return {'image': img_tensor, 'location': point_map_tensor, 'descriptor': feature_tensor}
+        return {'image': img_tensor, 'location': point_map_tensor, 'descriptor': feature_map_tensor}
 
 
     def __len__(self):
