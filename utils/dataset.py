@@ -6,12 +6,12 @@ from PIL import Image
 from torch.utils.data.dataset import Dataset
 
 
-def generate_heatmap(point_list, size):
-    heatmap = np.zeros((1, size, size))
+def generate_heatmap(point_list):
+    heatmap = np.zeros((1, 128, 128))
     for point in point_list:
         # our origin in point coords is in bottom left (0,0) & it's cols are XY
         # XY (point[0]&point[1]) are also float and need rounding
-        r = size - np.round(point[1])
+        r = 128 - np.round(point[1])
         r = r.astype(int)
         c = np.round(point[0])
         c = c.astype(int)
@@ -32,6 +32,8 @@ class MyDataset(Dataset):
         self.image_list = glob.glob(root_path + '/Image/' + '*')
         # get the points list
         self.point_list = glob.glob(root_path + '/Point_Location/' + '*')
+        # get the features list
+        self.feature_list = glob.glob(root_path + '/Coarse_Label/' + '*')
 
         # calculate length
         self.dataset_length = len(self.image_list)
@@ -58,10 +60,20 @@ class MyDataset(Dataset):
             y_pts = np.array((data["Y"]))
             points = np.vstack((x_pts, y_pts)).T
             # generate point heatmap from point locations
-            point_map = generate_heatmap(points, 128)
+            point_map = generate_heatmap(points)
             # convert to tensor, change data type
             point_map_tensor = torch.from_numpy(point_map).float()
         json_file.close()
+
+        # feature path
+        #single_feature_path = self.feature_list[index]
+
+        # open the file containing point features
+        #with open(single_feature_path) as feature_json:
+        #    data_f = json.load(feature_json)
+
+            #
+        feature_tensor = None
 
         # Transform image to tensor
         if self.transforms:
@@ -69,7 +81,7 @@ class MyDataset(Dataset):
             point_map_tensor = self.transforms(point_map_tensor)
 
         # Return image and the label
-        return {'image': img_tensor, 'point_map': point_map_tensor}
+        return {'image': img_tensor, 'location': point_map_tensor, 'descriptor': feature_tensor}
 
     def __len__(self):
         return self.dataset_length
