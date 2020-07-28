@@ -9,10 +9,6 @@ from torch.utils.data import DataLoader, random_split
 from utils.loss import ocdnet_loss, descriptor_loss
 import matplotlib.pyplot as plt
 
-dir_img = 'data/imgs/'
-dir_mask = 'data/masks/'
-dir_checkpoint = 'checkpoints/'
-
 loss_train = []
 loss_val = []
 
@@ -26,7 +22,7 @@ def train_net(net, val_percent=0.1, batch_size=128, lr=0.001, epochs=5):
     val_loader = DataLoader(val, batch_size=batch_size, shuffle=False, num_workers=8, pin_memory=True, drop_last=True)
 
     optimizer = optim.RMSprop(net.parameters(), lr=lr, weight_decay=1e-8, momentum=0.9)
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=2)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=10)
 
     for epoch in range(epochs):
         net.train()
@@ -77,14 +73,16 @@ def train_net(net, val_percent=0.1, batch_size=128, lr=0.001, epochs=5):
                              descriptor_pred, descriptor_target)
                     epoch_loss_val += loss_pos_val.item() * img.size(0)
 
+                scheduler.step(epoch_loss_val)
+
             torch.save(net.state_dict(), 'model_val_{0}_saved.pth'.format(epoch))
 
 
 if __name__ == "__main__":
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    net = PointDetectorNet()
 
+    net = PointDetectorNet()
     net.to(device=device)
     train_net(net)
 

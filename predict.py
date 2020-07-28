@@ -1,47 +1,56 @@
-import logging
-import os
-
-from PIL import Image
 import torch
-from utils.dataset import
-from model import PointDetectorNet
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.io import savemat
+from network import Model
+from dataset import MyDataset
 
-def predict_img(net, img, ):
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-if __name__ == "__main__":
-    args = get_args()
-    in_files = args.input
-    out_files = get_output_filenames(args)
+# Define custom dataset
+my_dataset = MyDataset('.')
 
-    net = PointDetectorNet
+# Define data loader
+batch_size = 1
+validation_split = .3
+shuffle_dataset = True
+random_seed = 42
 
-    logging.info("Loading model {}".format(args.model))
+# Creating data indices for training and validation splits:
+dataset_size = len(my_dataset)
+indices = list(range(dataset_size))
+split = int(np.floor(validation_split * dataset_size))
+if shuffle_dataset:
+    np.random.seed(random_seed)
+    np.random.shuffle(indices)
+val_indices = indices[:split]
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    logging.info(f'Using device {device}')
-    net.to(device=device)
-    net.load_state_dict(torch.load(args.model, map_location=device))
+# check if dataset load order is correct
+# for ind in val_indices:
+#     print(ind)
+#     img, _ = my_dataset[ind]
+#     plt.figure()
+#     plt.imshow(img.permute(1,2,0))
+#     plt.show()
 
-    logging.info("Model loaded !")
+# load model
+model = Model().to(device=device)
+model.load_state_dict(torch.load('model_saved.pth'))
+model = model.float()
+model.eval()
 
-    for i, fn in enumerate(in_files):
-        logging.info("\nPredicting image {} ...".format(fn))
+for ind in val_indices:
+    data = my_dataset[ind]
+    img = data['image']
+    img = img.to(device=device)
+    img = img.unsqueeze(dim=0)
+    score_map, position_map, descriptor_map = model(img)
 
-        img = Image.open(fn)
+    position_map = position_map.squeeze()  # must be (128,128)
+    position_map = position_map.detach().cpu().numpy()
 
-        mask = predict_img(net=net,
-                           full_img=img,
-                           scale_factor=args.scale,
-                           out_threshold=args.mask_threshold,
-                           device=device)
+    descriptor_map = descriptor_map.squeeze()  # must be (128,128)
+    descriptor_map = descriptor_map.detach().cpu().numpy()
 
-        if not args.no_save:
-            out_fn = out_files[i]
-            result = mask_to_image(mask)
-            result.save(out_files[i])
-
-            logging.info("Mask saved to {}".format(out_files[i]))
-
-        if args.viz:
-            logging.info("Visualizing results for image {}, close to continue ...".format(fn))
-            plot_img_and_mask(img, mask)
+    mdic = {'position_map': position_map, 'descriptor_map': descriptor_map}
+    savemat(f"results/%.06d.mat" % (ind), mdic)
