@@ -38,7 +38,7 @@ def train_net(net, val_percent=0.1, batch_size=128, lr=0.001, epochs=5):
             location_target = location_target.to(device=device)
             descriptor_target = descriptor_target.to(device=device)
 
-            score_pred, location_pred, descriptor_pred = net(img)
+            location_pred, descriptor_pred = net(img)
 
             loss = ocdnet_loss(1, 1, location_pred, location_target,
                              descriptor_pred, descriptor_target)
@@ -66,7 +66,7 @@ def train_net(net, val_percent=0.1, batch_size=128, lr=0.001, epochs=5):
                     location_target = location_target.to(device=device)
                     descriptor_target = descriptor_target.to(device=device)
 
-                    score_pred, location_pred, descriptor_pred = net(img)
+                    location_pred, descriptor_pred = net(img)
 
                     # loss calculation
                     loss_pos_val = ocdnet_loss(1, 1, location_pred, location_target,

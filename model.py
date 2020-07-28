@@ -18,7 +18,7 @@ class PointDetectorNet(nn.Module):
         self.vgg4 = DoubleConv(128, 256)
 
         # Score Module
-        self.score = ScoreHead(256, 256)
+        #self.score = ScoreHead(256, 256)
 
         # Location Module
         self.location = LocationHead(256, 256)
@@ -37,12 +37,12 @@ class PointDetectorNet(nn.Module):
         x = self.pool3(x3)
         x = self.vgg4(x)
 
-        score = self.score(x)
+        #score = self.score(x)
         location = self.location(x)
         descriptor = self.descriptor1(x)
         descriptor = self.descriptor2(descriptor, x3)
 
-        return score, location, descriptor
+        return location, descriptor
 
 class SegmentationModel(nn.Module):
     def __init__(self):

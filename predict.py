@@ -44,7 +44,7 @@ for ind in val_indices:
     img = data['image']
     img = img.to(device=device)
     img = img.unsqueeze(dim=0)
-    score_map, position_map, descriptor_map = model(img)
+    position_map, descriptor_map = model(img)
 
     position_map = position_map.squeeze()  # must be (128,128)
     position_map = position_map.detach().cpu().numpy()

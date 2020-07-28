@@ -17,7 +17,8 @@ def ocdnet_loss(score_pred, score_target, location_pred, location_target, descri
 def score_loss(score_pred, score_target):
     return 0
 
-def descriptor_loss(descriptor_pred, descriptor_target):
+def descriptor_loss(location_target, descriptor_pred, descriptor_target):
+
 
     total_loss = 0
     dimensions = descriptor_target.shape
