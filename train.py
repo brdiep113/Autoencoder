@@ -53,7 +53,7 @@ def train_net(net, val_percent=0.1, batch_size=128, lr=0.001, epochs=5):
             optimizer.step()
 
         # Validation
-        if (epoch + 1) % 10 == 0:
+        if (epoch + 1) % 100 == 0:
 
             net.eval()
             epoch_loss_val = 0.0
@@ -77,6 +77,8 @@ def train_net(net, val_percent=0.1, batch_size=128, lr=0.001, epochs=5):
                              descriptor_pred, descriptor_target)
                     epoch_loss_val += loss_pos_val.item() * img.size(0)
 
+            torch.save(net.state_dict(), 'model_val_{0}_saved.pth'.format(epoch))
+
 
 if __name__ == "__main__":
 
@@ -86,7 +88,7 @@ if __name__ == "__main__":
     net.to(device=device)
     train_net(net)
 
-    torch.save(net.state_dict(), 'model_saved.pth')
+    torch.save(net.state_dict(), 'final_model_saved.pth')
 
     # Plot loss Evolution
     plt.plot(loss_train, label='training loss')
