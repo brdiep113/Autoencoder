@@ -21,7 +21,7 @@ def generate_heatmap(point_list):
 
 
 def generate_feature_cube(point_list, feature_list):
-    feature_cube = np.zeroes((16, 128, 128))
+    feature_cube = np.zeros((16, 128, 128))
     for i in range(len(point_list)):
         point = point_list[i]
         r, c = 128 - np.round(point[1]), np.round(point[0])

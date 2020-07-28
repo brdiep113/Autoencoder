@@ -17,18 +17,19 @@ def ocdnet_loss(score_pred, score_target, location_pred, location_target, descri
 def score_loss(score_pred, score_target):
     return 0
 
-def descriptor_loss(location_target, descriptor_pred, descriptor_target):
+def descriptor_loss(descriptor_pred, descriptor_target):
 
-
+    loss = nn.BCEWithLogitsLoss()
     total_loss = 0
     dimensions = descriptor_target.shape
-    r = dimensions[1]
-    c = dimensions[2]
+    r = dimensions[2]
+    c = dimensions[3]
     for i in range(r):
         for j in range(c):
-            total_loss += nn.BCEWithLogitsLoss(descriptor_pred[:, r, c], descriptor_target[:, r, c])
+            total_loss += loss(descriptor_pred[:, :, r, c], descriptor_target[:, :, r, c])
 
     return total_loss / r
 
 def location_loss(location_pred, location_target):
-    return nn.BCEWithLogitsLoss(location_pred, location_target)
+    loss = nn.BCEWithLogitsLoss()
+    return loss(location_pred, location_target)

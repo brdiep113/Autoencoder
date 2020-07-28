@@ -76,6 +76,21 @@ class LocationHead(nn.Module):
     def forward(self, x):
         return self.location(x)
 
+class SingleDescriptorHead(nn.Module):
+
+    def __init__(self, in_channels, out_channels, mid_channels):
+        super(SingleDescriptorHead, self).__init__()
+        self.descriptor = nn.Sequential(
+            nn.Conv2d(in_channels, mid_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(mid_channels),
+            nn.Dropout(p=0.2, inplace=True),
+            nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.Conv2d(out_channels, 16, kernel_size=3, padding=1)
+        )
+
+    def forward(self, x):
+        return self.descriptor(x)
 
 class DescriptorHeadA(nn.Module):
 
@@ -86,7 +101,6 @@ class DescriptorHeadA(nn.Module):
             nn.BatchNorm2d(mid_channels),
             nn.Dropout(p=0.2, inplace=True),
             nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1),
-            nn.PixelShuffle(2)
         )
 
     def forward(self, x):

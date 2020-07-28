@@ -25,6 +25,7 @@ def train_net(net, val_percent=0.1, batch_size=128, lr=0.001, epochs=5):
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=10)
 
     for epoch in range(epochs):
+        epoch_loss = 0
         net.train()
 
         for _, data in enumerate(train_loader):
@@ -39,14 +40,21 @@ def train_net(net, val_percent=0.1, batch_size=128, lr=0.001, epochs=5):
             descriptor_target = descriptor_target.to(device=device)
 
             location_pred, descriptor_pred = net(img)
+            print(location_pred.shape)
+            print(location_target.shape)
+            print(descriptor_pred.shape)
+            print(descriptor_target.shape)
 
             loss = ocdnet_loss(1, 1, location_pred, location_target,
                              descriptor_pred, descriptor_target)
+            epoch_loss += loss.item() * img.size(0)
 
             optimizer.zero_grad()
             loss.backward()
             nn.utils.clip_grad_value_(net.parameters(), 0.1)
             optimizer.step()
+
+        print(f"epoch:[%.d] Training loss: %.5f" % (epoch + 1, epoch_loss / len(train_loader)))
 
         # Validation
         if (epoch + 1) % 100 == 0:
@@ -96,5 +104,3 @@ if __name__ == "__main__":
     plt.ylabel('Loss')
     plt.legend()
     plt.show()
-
-    print(summary(net, (3, 1024, 1024)))
