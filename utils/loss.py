@@ -23,10 +23,13 @@ def descriptor_loss(descriptor_pred, descriptor_target):
     total_loss = 0
     dimensions = descriptor_target.shape
     r = dimensions[2]
+    #print(r)
     c = dimensions[3]
-    for i in range(r):
-        for j in range(c):
-            total_loss += loss(descriptor_pred[:, :, r, c], descriptor_target[:, :, r, c])
+    #print(c)
+    #print(descriptor_target[1, :, 127, 127])
+    #print(descriptor_pred[1, :, 127, 127])
+
+    total_loss += loss(descriptor_pred[0, :, :, :], descriptor_target[0, :, :, :])
 
     return total_loss / r
 

@@ -15,11 +15,11 @@ class DoubleConv(nn.Module):
         self.double_conv = nn.Sequential(
             nn.Conv2d(in_channels, mid_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(mid_channels),
-            nn.LeakyReLU(inplace=True),
+            nn.LeakyReLU(inplace=False),
             nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(inplace=True),
-            nn.Dropout(p=0.2, inplace=True)
+            nn.LeakyReLU(inplace=False),
+            nn.Dropout(p=0.2, inplace=False)
         )
 
     def forward(self, x):
@@ -32,13 +32,13 @@ class TripleConv(nn.Module):
         self.triple_conv = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(inplace=True),
+            nn.LeakyReLU(inplace=False),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(inplace=True),
+            nn.LeakyReLU(inplace=False),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(inplace=True)
+            nn.LeakyReLU(inplace=False)
         )
 
     def forward(self, x):
@@ -90,7 +90,7 @@ class SingleDescriptorHead(nn.Module):
         )
 
     def forward(self, x):
-        return self.descriptor(x)
+        return F.interpolate(self.descriptor(x), size=(128, 128), mode='bicubic', align_corners=False)
 
 class DescriptorHeadA(nn.Module):
 

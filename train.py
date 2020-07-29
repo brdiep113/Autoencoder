@@ -40,14 +40,10 @@ def train_net(net, val_percent=0.1, batch_size=128, lr=0.001, epochs=5):
             descriptor_target = descriptor_target.to(device=device)
 
             location_pred, descriptor_pred = net(img)
-            print(location_pred.shape)
-            print(location_target.shape)
-            print(descriptor_pred.shape)
-            print(descriptor_target.shape)
 
             loss = ocdnet_loss(1, 1, location_pred, location_target,
                              descriptor_pred, descriptor_target)
-            epoch_loss += loss.item() * img.size(0)
+            epoch_loss += loss.itemgo() * img.size(0)
 
             optimizer.zero_grad()
             loss.backward()
@@ -57,7 +53,7 @@ def train_net(net, val_percent=0.1, batch_size=128, lr=0.001, epochs=5):
         print(f"epoch:[%.d] Training loss: %.5f" % (epoch + 1, epoch_loss / len(train_loader)))
 
         # Validation
-        if (epoch + 1) % 100 == 0:
+        if (epoch + 1) % 5 == 0:
 
             net.eval()
             epoch_loss_val = 0.0
@@ -81,6 +77,7 @@ def train_net(net, val_percent=0.1, batch_size=128, lr=0.001, epochs=5):
                              descriptor_pred, descriptor_target)
                     epoch_loss_val += loss_pos_val.item() * img.size(0)
 
+                print(f"epoch:[%.d] Validation loss: %.5f" % (epoch + 1, epoch_loss / len(val_loader)))
                 scheduler.step(epoch_loss_val)
 
             torch.save(net.state_dict(), 'model_val_{0}_saved.pth'.format(epoch))
@@ -89,9 +86,11 @@ def train_net(net, val_percent=0.1, batch_size=128, lr=0.001, epochs=5):
 if __name__ == "__main__":
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    torch.autograd.set_detect_anomaly(True)
 
     net = PointDetectorNet()
     net.to(device=device)
+    #print(summary(net, (3, 128, 128)))
     train_net(net)
 
     torch.save(net.state_dict(), 'final_model_saved.pth')

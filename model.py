@@ -33,8 +33,8 @@ class PointDetectorNet(nn.Module):
         x = self.pool1(x)
         x = self.vgg2(x)
         x = self.pool2(x)
-        x3 = self.vgg3(x)
-        x = self.pool3(x3)
+        x = self.vgg3(x)
+        x = self.pool3(x)
         x = self.vgg4(x)
 
         #score = self.score(x)
